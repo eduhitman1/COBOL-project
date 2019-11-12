@@ -1,10 +1,10 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. DESAFIO-MAIOR.
+       PROGRAM-ID. COB10-USUARIO.
       *******************
       * AREA DE COMENTARIOS - REMARKS
       * AUTHOR = IVAN(ALURA) IVANEL
-      * OBJETIVO: RECEBER NOME E SALARIO
-      * IMPRIMIR FORMATADO - USO DA VIRGULA
+      * OBJETIVO: RECEBER PRODUTO, VALOR E CALCULAR O FRETE
+      * UTILIZAR COMANDO ELVALUEATE
       * DATA = XX
       *******************
        ENVIRONMENT DIVISION.
@@ -12,16 +12,118 @@
        SPECIAL-NAMES.
            DECIMAL-POINT IS COMMA.
        DATA DIVISION.
+           SELECT ARQUIVENT  ASSIGN TO ARQENTJCL
+                             FILE STATUS IS WFL-STATUS-ARQENT.
+
+           SELECT ARQUSAIDA  ASSIGN TO ARQENTJCL
+                             FILE STATUS IS WFL-STATUS-ARQSAIDA.
+
+       FILE SECTION.
+
+       FD  ARQUIVENT
+           RECORDING MODE IS F.
+       01  REG-ARQUIVENT  PIC X(41).
+
+
+       FD  ARQUSAIDA
+           RECORDING MODE IS F.
+       01  REG-ARQUSAIDA  PIC X(41).
+
+
        WORKING-STORAGE SECTION.
 
-       77 WRK-NOME         PIC X(20) VALUE SPACES.
-       77 WRK-SALARIO      PIC 9(06)V99 VALUE ZEROS.
+       77  WRK-USUARIO PIC X(20) VALUE SPACES.
+       77  WRK-NIVEL PIC 9(02) VALUE ZEROS.
+
+           88 ADM VALUE 01.
+           88 USER VALUE 02.
+
+           01 CPF PIC 9(11) VALUE ZEROS.
+           01 CPF-AUX       VALUE ZEROS.
+                 03 CPF-AUX1 PIC 9(01).
+                 03 FILLER   PIC 9(01).
+                 03 CPF-RESTO PIC 9(01).
+
+           01 CPF-TAB  PIC 9(11) VALUE ZEROS.
+           01 CPF-OCOR REDEFINES CPF-TAB.
+             03 CPF-PEDACO PIC 9(01) OCCURS 11 TIMES.
+
+
+           01  WFL-STATUS-ARQENT PIC X(02) VALUE ZEROS.
+           01  WFL-STATUS-ARQSAIDA PIC X(02) VALUE ZEROS.
+
+           01 WCANCEL PIC X(03) VALUE '$CANCEL'.
+           01 WFL-FIM-ARQ PIC X(03)  VALUE 'NAO'.
+
+
+
+           01 WARQUIVENT VALUES ZEROS.
+              03 WARQUIVENT-CPF PIC X(11).
+              03 WARQUIVENT-CPF-NOME PIC X(11).
+
+           COPY ARQLAYOUT.
+
 
        PROCEDURE DIVISION.
-           ACCEPT WRK-NOME FROM CONSOLE.
-           ACCEPT WRK-SALARIO FROM CONSOLE.
+           PERFORM RT100-INICIALIZAR.
 
-           DISPLAY 'NOME.. ' WRK-NOME ' E SALRIO..'  WRK-SALARIO .
+           PERFORM RT200-PROCESSA UNITIL WFL-FIM-ARQ EQUAL 'SIM'
+
+           PERFORM RT900-FINALIZA.
+
+       RT100-INICIALIZA    SECTION.
+           OPEN INPUT ARQUIVENT
+                OUTPUT ARQSAIDA.
+
+           IF WFL-STATUS-ARQENT NOT EQUAL ZEROS
+           DISPLAY 'ERRO DA ABERTURA DO ARQUIVO DE ENTRADA ......
+                               '........'
+                   CALL WCANCEL
+           ELSE
+              DISPLAY 'ABERTURA OK'
+           END-IF.
 
 
-           STOP RUN.
+
+           PERFORM RT300-LER-ARQ
+       RT100-INICIALIZAR-FIM EXIT.
+
+       RT300-LER-ARQ SECTION.
+
+
+
+
+           READ ARQUIENT
+                AT END
+                MOVE 'SIM' TO WFL-FIM-ARQ
+           END-READ.
+       RT300-LER-ARQ EXIT.
+
+       RT200-PROCESSA SECTION.
+
+           IF WARQUIVENT-CPF(1:1) EQUAL 9
+           WRITE REG-ARQUSAIDA FROM WARQUIVENT
+           END-IF.
+
+           PERFORM RT300-LER-ARQ.
+
+
+       RT200-PROCESSA-FIM. EXIT.
+
+           DISPLAY 'USUARIO..'
+           ACCEPT WRK-USUARIO.
+
+           DISPLAY 'NIVEL..'
+           ACCEPT WRK-NIVEL.
+
+           IF ADM
+               DISPLAY 'NIVEL - ADMINISTRADOR'
+           ELSE
+               IF USER
+                   DISPLAY 'NIVEL USUARIO'
+               ELSE
+                   DISPLAY 'USUARIO NAO AUTORIZADO'
+
+              END-IF
+           END-IF.
+           GOBACK.

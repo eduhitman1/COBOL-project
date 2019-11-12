@@ -19,7 +19,7 @@
        0001-PRINCIPAL.
                 PERFORM 0100-INICIALIZAR.
            IF WRK-NOTA1 > 0 AND WRK-NOTA2 >0
-                PERFORM 0200-PROCESSAR.
+                PERFORM 0200-PROCESSAR
               END-IF.
               PERFORM 0300-FINALIZAR.
 
